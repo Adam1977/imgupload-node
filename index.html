@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- 引入样式 -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <el-upload
+        :action="baseUrl +'/uplaod'"
+        class="upload-demo"
+        :file-list="fileList"
+        :before-upload="beforeUpload"
+        list-type="picture"
+      >
+        <el-button size="small" type="primary">点击上传</el-button>
+      </el-upload>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+  <!-- 引入组件库 -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    const vm = new Vue({
+      el: '#app',
+      data: {
+        fileList: [],
+        baseUrl: 'http://localhost:3000'
+      },
+      mounted() {
+        // 为给定 ID 的 user 创建请求
+        axios.get(`${this.baseUrl}/?a=123&b=12312323`).then(function (res) {
+          console.log(res.data)
+        })
+        axios({
+          method: 'post',
+          url: `${this.baseUrl}/test`,
+          data: {a: 123, b: 123123},
+          headers: {'Content-Type': 'application/json'}
+        })
+      },
+      methods: {
+        beforeUpload(file) {
+          let kb = 1024
+          console.log(file, file.name, file.size / kb)
+          //通过FormData构造函数创建一个空对象
+          var formdata = new FormData()
+          //可以通过append()方法来追加数据
+          formdata.append('file', file)
+          formdata.append('isRename', true)
+          // 大文件切片上传，需后端拼接切片，暂未完成
+          // formdata.append('file', file.slice(0, 10*kb))
+          // 发送 POST 请求
+          axios({
+            method: 'post',
+            url: `${this.baseUrl}/upload`,
+            data: formdata
+          }).then((res) => {
+            if (!res.data.status) {
+              let aryList = res.data.imgSrc.split('/')
+              this.fileList.push({
+                name: aryList[aryList.length - 1],
+                url: `${this.baseUrl}/${res.data.imgSrc}`
+              })
+            } else {
+              this.$message(res.data.msg)
+            }
+          })
+          return false
+        }
+      }
+    })
+  </script>
+</html>
